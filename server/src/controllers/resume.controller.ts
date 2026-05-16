@@ -25,19 +25,22 @@ export const analyzeResume = async (
         const user = (req as any).user;
         const userSupabase = (token && user) ? createAuthorizedClient(token) : null;
 
-        // Check analysis limit (3 per user)
+        // Check analysis limit (3 per 24 hours)
         if (userSupabase && user) {
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            
             const { count, error: countError } = await userSupabase
                 .from('resume_analyses')
                 .select('*', { count: 'exact', head: true })
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .gte('created_at', twentyFourHoursAgo);
 
             if (countError) {
                 console.error("Error checking analysis limit:", countError);
             } else if (count !== null && count >= 3) {
                 res.status(403).json({
                     success: false,
-                    message: "Free tier limit reached. You can only perform 3 analyses."
+                    message: "Daily limit reached. You can perform 3 analyses every 24 hours."
                 });
                 return;
             }

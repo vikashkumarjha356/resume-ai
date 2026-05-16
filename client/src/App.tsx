@@ -19,35 +19,38 @@ function App() {
       <Toaster position="bottom-right" theme="dark" richColors />
       
       {/* Premium Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-[#020617]/80 backdrop-blur-2xl border-b border-white/5 px-6 py-4 shadow-2xl flex items-center justify-center">
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-[#020617]/70 backdrop-blur-xl border-b border-white/5 px-8 h-20 flex items-center justify-center transition-all duration-300">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo Section */}
-          <Link to="/" onClick={scrollToTop} className="flex items-center gap-4 cursor-pointer group pl-2">
-            <div className="h-10 w-10 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-center shadow-inner">
-              <Command className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+          <Link to="/" onClick={scrollToTop} className="flex items-center gap-3 cursor-pointer group">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)] group-hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] transition-all">
+              <Command className="h-4 w-4 text-white" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-base font-bold tracking-widest leading-none text-white uppercase">RESUMEAI</span>
-              <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40 mt-1">Enterprise AI</span>
-            </div>
+            <span className="text-lg font-bold tracking-tight text-white group-hover:text-indigo-100 transition-colors">RESUMEAI</span>
           </Link>
 
           {/* Center Links */}
-          <div className="hidden lg:flex items-center gap-14">
-            <a href="#" className="text-sm font-medium text-white/90 hover:text-white transition-colors">Platform</a>
-            <a href="#" className="text-sm font-medium text-white/90 hover:text-white transition-colors flex items-center gap-1">
-              Solutions <ChevronDown className="h-3 w-3 opacity-50" />
-            </a>
-            <a href="#" className="text-sm font-medium text-white/90 hover:text-white transition-colors">Enterprise</a>
-            <a href="#" className="text-sm font-medium text-white/90 hover:text-white transition-colors">Changelog</a>
-            <a href="#" className="text-sm font-medium text-white/90 hover:text-white transition-colors">Pricing</a>
+          <div className="hidden lg:flex items-center gap-10">
+            {[
+              { label: 'Features', href: '#features' },
+              { label: 'How it Works', href: '#how-it-works' },
+              { label: 'Pricing', href: '#pricing' }
+            ].map((link) => (
+              <a 
+                key={link.label}
+                href={link.href} 
+                className="relative text-sm font-medium text-slate-400 hover:text-white transition-colors group py-2"
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+              </a>
+            ))}
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-6 pr-2">
-            <div className="pl-2 border-l border-white/10">
-              <UserButton />
-            </div>
+          <div className="flex items-center gap-8">
+            <div className="hidden md:block h-6 w-px bg-white/10" />
+            <UserButton />
           </div>
         </div>
       </nav>

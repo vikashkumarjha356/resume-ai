@@ -8,6 +8,11 @@ import { ArrowLeft } from 'lucide-react';
 import { ErrorState } from '../components/ErrorState';
 import { EmptyState } from '../components/EmptyState';
 import { Hero } from '../components/Hero';
+import { WhyResumeAI } from '../components/WhyResumeAI';
+import { BeforeAfter } from '../components/BeforeAfter';
+import { SocialProof } from '../components/SocialProof';
+import { Pricing } from '../components/Pricing';
+import { Security } from '../components/Security';
 
 export const Home = () => {
   const { analyze, loading, error, result, reset } = useResumeAnalysis();
@@ -38,6 +43,11 @@ export const Home = () => {
             exit={{ opacity: 0, y: -60, transition: { duration: 0.5 } }}
           >
             <Hero onGetStarted={scrollToAnalyze} />
+            <WhyResumeAI />
+            <BeforeAfter />
+            <SocialProof />
+            <Pricing onGetStarted={scrollToAnalyze} />
+            <Security />
           </motion.div>
         )}
       </AnimatePresence>
