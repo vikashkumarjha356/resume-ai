@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion';
-import { AlertCircle, RefreshCcw, Home } from 'lucide-react';
+import { AlertCircle, RefreshCcw, Home, CreditCard } from 'lucide-react';
 
 interface ErrorStateProps {
   message: string;
   onRetry: () => void;
   onReset: () => void;
+  onCheckPricing?: () => void;
 }
 
-export const ErrorState = ({ message, onRetry, onReset }: ErrorStateProps) => {
+export const ErrorState = ({ message, onRetry, onReset, onCheckPricing }: ErrorStateProps) => {
+  const isLimitError = message.toLowerCase().includes('limit');
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -27,13 +29,23 @@ export const ErrorState = ({ message, onRetry, onReset }: ErrorStateProps) => {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <button
-          onClick={onRetry}
-          className="group flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-black transition-all hover:scale-105"
-        >
-          <RefreshCcw className="h-4 w-4 transition-transform group-hover:rotate-180 duration-500" />
-          Try Again
-        </button>
+        {isLimitError && onCheckPricing ? (
+          <button
+            onClick={onCheckPricing}
+            className="group flex items-center gap-2 rounded-full bg-indigo-500 px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-indigo-400 hover:scale-105 shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+          >
+            <CreditCard className="h-4 w-4" />
+            Check Pricing
+          </button>
+        ) : (
+          <button
+            onClick={onRetry}
+            className="group flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-black transition-all hover:scale-105"
+          >
+            <RefreshCcw className="h-4 w-4 transition-transform group-hover:rotate-180 duration-500" />
+            Try Again
+          </button>
+        )}
         <button
           onClick={onReset}
           className="flex items-center gap-2 rounded-full bg-white/5 px-8 py-3 text-sm font-semibold text-white/60 transition-all hover:bg-white/10 hover:text-white"

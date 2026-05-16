@@ -62,13 +62,19 @@ export const Home = () => {
                 key="error"
                 message={error} 
                 onRetry={reset} 
-                onReset={reset} 
+                onReset={() => {
+                  window.history.pushState('', document.title, window.location.pathname + window.location.search);
+                  reset();
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
+                }}
+                onCheckPricing={() => {
+                  window.history.pushState('', document.title, window.location.pathname + window.location.search);
+                  reset();
+                  setTimeout(() => {
+                    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
               />
-              {error.toLowerCase().includes('limit') && (
-                <div className="mt-8 -mx-8">
-                  <Pricing onGetStarted={scrollToAnalyze} />
-                </div>
-              )}
             </motion.div>
           ) : loading ? (
             <motion.div
