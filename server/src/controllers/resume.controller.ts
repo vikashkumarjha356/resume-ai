@@ -20,6 +20,29 @@ export const analyzeResume = async (
             return;
         }
 
+        // Initialize auth context
+        const token = req.headers.authorization?.split(" ")[1];
+        const user = (req as any).user;
+        const userSupabase = (token && user) ? createAuthorizedClient(token) : null;
+
+        // Check analysis limit (3 per user)
+        if (userSupabase && user) {
+            const { count, error: countError } = await userSupabase
+                .from('resume_analyses')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id);
+
+            if (countError) {
+                console.error("Error checking analysis limit:", countError);
+            } else if (count !== null && count >= 3) {
+                res.status(403).json({
+                    success: false,
+                    message: "Free tier limit reached. You can only perform 3 analyses."
+                });
+                return;
+            }
+        }
+
         const resumeText = await parseResume(
             file.path,
             file.mimetype
@@ -29,14 +52,12 @@ export const analyzeResume = async (
         const analysis = await analyzeResumeWithAI(resumeText, jobDescription);
 
         // Save analysis to Supabase database
-        const token = req.headers.authorization?.split(" ")[1];
-        if (token && (req as any).user) {
-            const userSupabase = createAuthorizedClient(token);
+        if (userSupabase && user) {
             const { error: dbError } = await userSupabase
                 .from('resume_analyses')
                 .insert({
-                    user_id: (req as any).user.id,
-                    user_email: (req as any).user.email,
+                    user_id: user.id,
+                    user_email: user.email,
                     job_description: jobDescription,
                     analysis_data: analysis
                 });
