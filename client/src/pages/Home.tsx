@@ -24,19 +24,19 @@ export const Home = () => {
   };
 
   useEffect(() => {
-    if (loading || result) {
+    if (result) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (window.location.hash === '#analyze-section') {
       setTimeout(() => {
         scrollToAnalyze();
       }, 100);
     }
-  }, [loading, result]);
+  }, [result]);
 
   return (
     <>
       <AnimatePresence mode="wait">
-        {!result && !loading && !error && (
+        {!result && (
           <motion.div
             key="hero"
             initial={{ opacity: 0 }}
@@ -57,12 +57,19 @@ export const Home = () => {
       <main className="mx-auto max-w-5xl px-8 pb-40">
         <AnimatePresence mode="wait">
           {error ? (
-            <ErrorState 
-              key="error"
-              message={error} 
-              onRetry={reset} 
-              onReset={reset} 
-            />
+            <motion.div key="error-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <ErrorState 
+                key="error"
+                message={error} 
+                onRetry={reset} 
+                onReset={reset} 
+              />
+              {error.toLowerCase().includes('limit') && (
+                <div className="mt-8 -mx-8">
+                  <Pricing onGetStarted={scrollToAnalyze} />
+                </div>
+              )}
+            </motion.div>
           ) : loading ? (
             <motion.div
               key="loader"
