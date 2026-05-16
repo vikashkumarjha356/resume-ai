@@ -24,19 +24,19 @@ export const Home = () => {
   };
 
   useEffect(() => {
-    if (result) {
+    if (result || error) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (window.location.hash === '#analyze-section') {
       setTimeout(() => {
         scrollToAnalyze();
       }, 100);
     }
-  }, [result]);
+  }, [result, error]);
 
   return (
     <>
       <AnimatePresence mode="wait">
-        {!result && (
+        {!result && !error && (
           <motion.div
             key="hero"
             initial={{ opacity: 0 }}
@@ -57,7 +57,7 @@ export const Home = () => {
       <main className="mx-auto max-w-5xl px-8 pb-40">
         <AnimatePresence mode="wait">
           {error ? (
-            <motion.div key="error-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="error-container" className="pt-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <ErrorState 
                 key="error"
                 message={error} 
@@ -111,7 +111,7 @@ export const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -60 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="pt-0"
+              className="pt-0 scroll-mt-32"
             >
               <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
                 <div className="w-full mt-4">

@@ -1,6 +1,6 @@
 import { Upload, FileText, X, AlertCircle, CheckCircle2, Sparkles, Layout, ArrowRight, Lock } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,7 +15,10 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
   const [jobDescription, setJobDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileShake = useAnimation();
+  const descShake = useAnimation();
   
   const { user, signInWithGoogle } = useAuth();
 
@@ -85,9 +88,20 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!requireAuth()) return;
-    if (file && jobDescription.trim()) {
-      onAnalyze(file, jobDescription);
+    
+    if (!file || !jobDescription.trim()) {
+      setShowValidation(true);
+      if (!file) {
+        fileShake.start({ x: [-8, 8, -8, 8, 0], transition: { duration: 0.4 } });
+      }
+      if (!jobDescription.trim()) {
+        descShake.start({ x: [-8, 8, -8, 8, 0], transition: { duration: 0.4 } });
+      }
+      return;
     }
+    
+    setShowValidation(false);
+    onAnalyze(file, jobDescription);
   };
 
   return (
@@ -118,6 +132,7 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
           </div>
           
           <motion.div
+            animate={fileShake}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -131,7 +146,7 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
               isDragging 
                 ? "border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_60px_rgba(99,102,241,0.2)]" 
                 : "border-white/20 bg-transparent hover:border-indigo-500/40 hover:bg-white/[0.02]",
-              error && "border-rose-500/50 bg-rose-500/5"
+              (error || (showValidation && !file)) && "border-rose-500/50 bg-rose-500/5"
             )}
           >
             <input
@@ -230,14 +245,24 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
               {jobDescription.length} chars
             </span>
           </div>
-          <div className="relative group h-72">
+          <motion.div animate={descShake} className="relative group h-72">
             <textarea
               value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              onChange={(e) => {
+                setJobDescription(e.target.value);
+                if (showValidation && e.target.value.trim()) {
+                  setShowValidation(false);
+                }
+              }}
               placeholder="Paste the job requirements, responsibilities,&#10;and qualifications here...&#10;&#10;The more context you provide, the better&#10;the AI can tailor your resume analysis."
-              className="absolute inset-0 h-full w-full resize-none rounded-[2rem] border border-white/10 bg-transparent p-8 text-sm leading-relaxed text-white placeholder:text-white/40 focus:border-indigo-500/50 focus:bg-white/[0.02] focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all hover:border-white/20 hover:bg-white/[0.01]"
+              className={cn(
+                "absolute inset-0 h-full w-full resize-none rounded-[2rem] border bg-transparent p-8 text-sm leading-relaxed text-white placeholder:text-white/40 focus:outline-none focus:ring-1 transition-all",
+                showValidation && !jobDescription.trim() 
+                  ? "border-rose-500/50 bg-rose-500/5 focus:border-rose-500/50 focus:ring-rose-500/30"
+                  : "border-white/10 hover:border-white/20 hover:bg-white/[0.01] focus:border-indigo-500/50 focus:bg-white/[0.02] focus:ring-indigo-500/30"
+              )}
             />
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -249,7 +274,7 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
           
           <motion.button
             type="submit"
-            disabled={!file || !jobDescription.trim() || isLoading}
+            disabled={isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="group relative h-14 w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] text-white transition-all shadow-[0_10px_30px_rgba(99,102,241,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer overflow-hidden animate-gradient"
