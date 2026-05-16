@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment Variables
+.env
+client/.env
+server/.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+client/dist/
+server/dist/
+build/
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Backend specific
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
