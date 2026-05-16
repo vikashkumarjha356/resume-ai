@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Sparkles, Zap, Shield } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const plans = [
   {
