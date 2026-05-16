@@ -1,6 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Command, ChevronDown } from 'lucide-react';
+import { Command } from 'lucide-react';
 import { UserButton } from './components/UserButton';
 import { Toaster } from 'sonner';
 import { Home } from './pages/Home';
@@ -17,7 +17,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[#020617] text-white selection:bg-indigo-500/30 selection:text-white font-sans antialiased flex flex-col">
       <Toaster position="bottom-right" theme="dark" richColors />
-      
+
       {/* Premium Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-[#020617]/70 backdrop-blur-xl border-b border-white/5 px-8 h-20 flex items-center justify-center transition-all duration-300">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
@@ -36,9 +36,9 @@ function App() {
               { label: 'How it Works', href: '#how-it-works' },
               { label: 'Pricing', href: '#pricing' }
             ].map((link) => (
-              <a 
+              <a
                 key={link.label}
-                href={link.href} 
+                href={link.href}
                 className="relative text-sm font-medium text-slate-400 hover:text-white transition-colors group py-2"
               >
                 {link.label}
@@ -94,9 +94,9 @@ function App() {
               The world's most advanced AI-powered resume optimization engine. Purpose-built for elite career progression.
             </p>
             <div className="flex gap-6">
-               {[Globe, Sparkles, Layout].map((Icon, i) => (
-                 <Icon key={i} className="h-5 w-5 text-white/20 hover:text-indigo-400 transition-colors cursor-pointer" />
-               ))}
+              {[Globe, Sparkles, Layout].map((Icon, i) => (
+                <Icon key={i} className="h-5 w-5 text-white/20 hover:text-indigo-400 transition-colors cursor-pointer" />
+              ))}
             </div>
           </div>
           <div className="space-y-6">
