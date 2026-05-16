@@ -4,7 +4,7 @@ import { KeywordTags } from './KeywordTags';
 import { BulletImprovementCard } from './BulletImprovementCard';
 import { InsightListCard } from './InsightListCard';
 import type { ResumeAnalysis } from '../types/resume';
-import { Sparkles, Target, User, LayoutGrid, Copy, Check, Download } from 'lucide-react';
+import { Sparkles, Target, User, LayoutGrid, Copy, Check, Download, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ExportSection } from './ExportSection';
