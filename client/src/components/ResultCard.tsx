@@ -187,6 +187,37 @@ export const ResultCard = ({ data }: { data: ResumeAnalysis }) => {
         </div>
       </motion.section>
 
+      {/* Prepare UX for Rewrite Engine (Premium CTA) */}
+      <motion.section variants={item} className="mt-20">
+        <div className="relative overflow-hidden rounded-[3rem] border border-indigo-500/30 bg-slate-900/40 p-12 text-center backdrop-blur-xl group">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-50" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.15)_0%,transparent_100%)] blur-2xl" />
+          
+          <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(79,70,229,0.4)] group-hover:shadow-[0_0_50px_rgba(79,70,229,0.6)] transition-shadow">
+              <Sparkles className="h-8 w-8 text-white" />
+            </div>
+            
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
+              Ready for the perfect resume?
+            </h2>
+            <p className="text-lg text-slate-400 mb-10 leading-relaxed">
+              Let our AI completely rewrite your resume. We'll implement every optimization, improve your impact, and generate a recruiter-ready DOCX while preserving your original formatting.
+            </p>
+            
+            <button className="group relative h-14 px-10 rounded-2xl bg-white text-slate-950 font-bold text-sm transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-3 overflow-hidden">
+              <span className="relative z-10 flex items-center gap-2">
+                Generate Optimized Resume <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <p className="text-xs font-medium text-slate-500 mt-6 uppercase tracking-widest">
+              Premium Feature • Coming Soon
+            </p>
+          </div>
+        </div>
+      </motion.section>
+
     </motion.div>
   );
 };

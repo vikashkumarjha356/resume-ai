@@ -252,14 +252,15 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
             disabled={!file || !jobDescription.trim() || isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="relative h-14 w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white transition-all shadow-[0_10px_30px_rgba(99,102,241,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
+            className="group relative h-14 w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] text-white transition-all shadow-[0_10px_30px_rgba(99,102,241,0.3)] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer overflow-hidden animate-gradient"
           >
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative z-10 flex items-center justify-center gap-3">
               <Sparkles className="h-4 w-4" />
-              <span className="text-[15px] font-semibold text-white drop-shadow-sm">
-                {isLoading ? 'Processing...' : 'Start Full Analysis'}
+              <span className="text-[15px] font-bold text-white tracking-wide uppercase">
+                {isLoading ? 'Processing...' : 'Optimize My Resume'}
               </span>
-              <ArrowRight className="h-4 w-4 ml-1" />
+              <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
             </div>
           </motion.button>
         </div>

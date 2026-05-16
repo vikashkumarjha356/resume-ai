@@ -18,9 +18,9 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="text-6xl md:text-7xl font-semibold tracking-tight mb-8 leading-[1.1] max-w-4xl"
         >
-          <span className="text-white">Optimize your</span> <br />
+          <span className="text-white">Turn your resume into a</span> <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 animate-gradient-x">
-            resume with AI
+            Recruiter Magnet
           </span>
         </motion.h1>
 
@@ -31,7 +31,7 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="text-xl md:text-2xl text-white/40 max-w-3xl leading-relaxed mb-16 px-4 font-medium tracking-tight"
         >
-          Instant ATS scores, strategic keyword optimization, and recruiter-ready bullet points. Land more interviews with data-backed precision.
+          Stop guessing what recruiters want. Get deep ATS analysis, instant feedback, and data-backed optimization to land more interviews.
         </motion.p>
 
         {/* High-Performance CTAs */}
@@ -43,12 +43,12 @@ export const Hero = ({ onGetStarted }: HeroProps) => {
         >
           <button
             onClick={onGetStarted}
-            className="group relative h-14 px-8 rounded-[14px] bg-white text-slate-950 font-semibold text-sm transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)] w-full sm:w-auto active:scale-95 cursor-pointer"
+            className="group relative h-14 px-8 rounded-[14px] bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold text-sm transition-all hover:scale-105 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.6)] w-full sm:w-auto active:scale-95 cursor-pointer overflow-hidden border border-white/10"
           >
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              Analyze resume <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide uppercase">
+              Optimize My Resume <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
 
           <button className="group h-14 px-8 rounded-[14px] bg-white/[0.02] border border-white/10 text-white font-medium text-sm transition-all hover:bg-white/[0.04] hover:border-white/20 backdrop-blur-md w-full sm:w-auto flex items-center justify-center gap-2 shadow-xl active:scale-95 cursor-pointer">

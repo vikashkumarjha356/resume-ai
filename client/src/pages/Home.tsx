@@ -9,6 +9,7 @@ import { ErrorState } from '../components/ErrorState';
 import { EmptyState } from '../components/EmptyState';
 import { Hero } from '../components/Hero';
 import { WhyResumeAI } from '../components/WhyResumeAI';
+import { HowItWorks } from '../components/HowItWorks';
 import { BeforeAfter } from '../components/BeforeAfter';
 import { SocialProof } from '../components/SocialProof';
 import { Pricing } from '../components/Pricing';
@@ -44,6 +45,7 @@ export const Home = () => {
           >
             <Hero onGetStarted={scrollToAnalyze} />
             <WhyResumeAI />
+            <HowItWorks />
             <BeforeAfter />
             <SocialProof />
             <Pricing onGetStarted={scrollToAnalyze} />
