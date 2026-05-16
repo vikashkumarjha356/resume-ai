@@ -75,13 +75,13 @@ function App() {
         />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col">
+      <main className="relative z-10 flex-1 flex flex-col">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/analysis/:id" element={<AnalysisDetail />} />
         </Routes>
-      </div>
+      </main>
 
       <footer className="relative z-10 border-t border-white/5 bg-slate-950/40 backdrop-blur-3xl py-24 mt-auto">
         <div className="mx-auto max-w-7xl px-8 grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
