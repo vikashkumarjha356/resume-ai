@@ -2,14 +2,15 @@ import { Request, Response } from "express";
 import { parseResume } from "../services/parser.service";
 import { analyzeResumeWithAI } from "../services/gemini.service";
 import { createAuthorizedClient } from "../config/supabase";
+import fs from "fs/promises";
 
 export const analyzeResume = async (
     req: Request,
     res: Response
 ) => {
+    const file = req.file;
     try {
         console.log("REQUEST HIT");
-        const file = req.file;
         const { jobDescription } = req.body;
 
         if (!file) {
@@ -42,7 +43,6 @@ export const analyzeResume = async (
             
             if (dbError) {
                 console.error("Failed to save analysis to database:", dbError);
-                // We don't throw here; we still want to return the analysis to the user
             }
         }
 
@@ -56,6 +56,16 @@ export const analyzeResume = async (
             success: false,
             message: error instanceof Error ? error.message : 'Internal server error during analysis'
         });
+    } finally {
+        // Always delete the temporary file to keep the server disk clean
+        if (file?.path) {
+            try {
+                await fs.unlink(file.path);
+                console.log(`Cleaned up temporary file: ${file.path}`);
+            } catch (err) {
+                console.error("Failed to delete temporary file:", err);
+            }
+        }
     }
 };
 
