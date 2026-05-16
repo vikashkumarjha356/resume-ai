@@ -36,7 +36,7 @@ export const Home = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {!result && !loading && (
+        {!result && !loading && !error && (
           <motion.div
             key="hero"
             initial={{ opacity: 0 }}
