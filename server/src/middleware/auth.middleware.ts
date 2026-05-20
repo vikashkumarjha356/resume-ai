@@ -7,8 +7,15 @@ export const requireAuth = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const isDev = process.env.BYPASS_AUTH_LIMITS === 'true';
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      if (isDev) {
+        console.warn("Bypassing authentication in development: No auth header found. Using mock user.");
+        (req as any).user = { id: "00000000-0000-0000-0000-000000000000", email: "tester@example.com" };
+        next();
+        return;
+      }
       res.status(401).json({
         success: false,
         message: "Missing or invalid authorization header",
@@ -21,6 +28,12 @@ export const requireAuth = async (
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
+      if (isDev) {
+        console.warn("Bypassing authentication in development: Invalid token. Using mock user.");
+        (req as any).user = { id: "00000000-0000-0000-0000-000000000000", email: "tester@example.com" };
+        next();
+        return;
+      }
       res.status(401).json({
         success: false,
         message: "Unauthorized - Invalid token",

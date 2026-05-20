@@ -25,8 +25,10 @@ export const analyzeResume = async (
         const user = (req as any).user;
         const userSupabase = (token && user) ? createAuthorizedClient(token) : null;
 
-        // Check analysis limit (3 per 24 hours)
-        if (userSupabase && user) {
+        const isDev = process.env.BYPASS_AUTH_LIMITS === 'true';
+
+        // Check analysis limit (3 per 24 hours) - bypassed in development
+        if (!isDev && userSupabase && user) {
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
             
             const { count, error: countError } = await userSupabase
@@ -54,8 +56,8 @@ export const analyzeResume = async (
         // Call Gemini service (now handles parsing, validation, and retries)
         const analysis = await analyzeResumeWithAI(resumeText, jobDescription);
 
-        // Save analysis to Supabase database
-        if (userSupabase && user) {
+        // Save analysis to Supabase database - bypassed in development (avoids trigger limits)
+        if (!isDev && userSupabase && user) {
             const { error: dbError } = await userSupabase
                 .from('resume_analyses')
                 .insert({

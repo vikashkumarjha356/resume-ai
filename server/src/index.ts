@@ -8,8 +8,19 @@ import { generalLimiter } from "./middleware/rateLimit.middleware";
 
 const app = express();
 
+const isDev = process.env.BYPASS_AUTH_LIMITS === 'true';
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: isDev
+        ? (origin, callback) => {
+            // In development, allow any localhost origin (e.g. localhost:5173, localhost:5174, etc.)
+            if (!origin || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+          }
+        : (process.env.CLIENT_URL || "http://localhost:5173"),
     credentials: true
 }));
 app.use(express.json());

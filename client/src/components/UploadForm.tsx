@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
+import { ENV } from '../config/env';
 
 interface UploadFormProps {
   onAnalyze: (file: File, jobDescription: string) => void;
@@ -23,6 +24,11 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
   const { user, signInWithGoogle } = useAuth();
 
   const requireAuth = () => {
+    const isDev = ENV.BYPASS_AUTH_LIMITS;
+    if (isDev) {
+      return true;
+    }
+
     if (!user) {
       toast.error('Authentication Required', {
         description: 'Please sign in to upload and analyze your resume.',
@@ -65,7 +71,8 @@ export const UploadForm = ({ onAnalyze, isLoading }: UploadFormProps) => {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (user) setIsDragging(true);
+    const isDev = ENV.BYPASS_AUTH_LIMITS;
+    if (isDev || user) setIsDragging(true);
   };
 
   const handleDragLeave = () => {
