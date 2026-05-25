@@ -2,11 +2,14 @@ import { Check, Copy, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const BulletImprovementCard = ({ text }: { text: string }) => {
+export const BulletImprovementCard = ({ text }: { text: string | { original: string; improved: string } }) => {
   const [copied, setCopied] = useState(false);
 
+  const originalText = typeof text === 'string' ? '' : text.original;
+  const improvedText = typeof text === 'string' ? text : text.improved;
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(improvedText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -20,7 +23,7 @@ export const BulletImprovementCard = ({ text }: { text: string }) => {
       {/* Dynamic Glow */}
       <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-violet-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity" />
 
-      <div className="flex flex-col h-full space-y-8">
+      <div className="flex flex-col h-full space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-violet-500/10 p-2.5 ring-1 ring-violet-500/20">
@@ -47,10 +50,21 @@ export const BulletImprovementCard = ({ text }: { text: string }) => {
           </button>
         </div>
         
-        <div className="flex-1">
-          <p className="text-lg font-bold leading-relaxed text-white/90 selection:bg-violet-500/30 italic">
-            "{text}"
-          </p>
+        <div className="flex-1 space-y-4">
+          {originalText && (
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/30">Original</span>
+              <p className="text-sm font-medium leading-relaxed text-white/40 line-through">
+                "{originalText}"
+              </p>
+            </div>
+          )}
+          <div className="space-y-1">
+            {originalText && <span className="text-[10px] font-bold uppercase tracking-wider text-violet-400">AI Improved</span>}
+            <p className="text-lg font-bold leading-relaxed text-white/90 selection:bg-violet-500/30 italic">
+              "{improvedText}"
+            </p>
+          </div>
         </div>
       </div>
     </motion.div>

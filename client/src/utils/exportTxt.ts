@@ -2,6 +2,15 @@ import { saveAs } from 'file-saver';
 import type { ResumeAnalysis } from '../types/resume';
 
 export const exportToTxt = (data: ResumeAnalysis) => {
+  const summaryText = typeof data.better_professional_summary === 'string'
+    ? data.better_professional_summary
+    : data.better_professional_summary?.improved || '';
+
+  const bulletPointsText = (data.improved_bullet_points || [])
+    .map(b => typeof b === 'string' ? b : b.improved)
+    .map(b => `- ${b}`)
+    .join('\n');
+
   const content = `
 AI RESUME ANALYSIS REPORT
 -------------------------
@@ -11,10 +20,10 @@ MISSING KEYWORDS:
 ${data.missing_keywords.join(', ')}
 
 PROFESSIONAL SUMMARY:
-${data.better_professional_summary}
+${summaryText}
 
 IMPROVED BULLET POINTS:
-${data.improved_bullet_points.map(b => `- ${b}`).join('\n')}
+${bulletPointsText}
 
 RESUME WEAKNESSES:
 ${data.resume_weaknesses.map(w => `- ${w}`).join('\n')}

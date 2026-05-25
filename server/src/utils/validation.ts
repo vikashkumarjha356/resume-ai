@@ -3,8 +3,14 @@ import { z } from 'zod';
 export const ResumeAnalysisSchema = z.object({
     ats_score: z.number().min(0).max(100),
     missing_keywords: z.array(z.string()),
-    improved_bullet_points: z.array(z.string()),
-    better_professional_summary: z.string(),
+    improved_bullet_points: z.array(z.object({
+        original: z.string(),
+        improved: z.string()
+    })),
+    better_professional_summary: z.object({
+        original: z.string(),
+        improved: z.string()
+    }),
     resume_weaknesses: z.array(z.string()),
     ats_optimization_tips: z.array(z.string()),
     recruiter_impression: z.string(),

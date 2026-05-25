@@ -1,8 +1,8 @@
 export interface ResumeAnalysis {
   ats_score: number;
   missing_keywords: string[];
-  improved_bullet_points: string[];
-  better_professional_summary: string;
+  improved_bullet_points: { original: string; improved: string }[];
+  better_professional_summary: { original: string; improved: string };
   resume_weaknesses: string[];
   ats_optimization_tips: string[];
   recruiter_impression: string;

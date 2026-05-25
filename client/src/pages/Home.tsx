@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadForm } from '../components/UploadForm';
 import { ResultCard } from '../components/ResultCard';
@@ -17,7 +17,18 @@ import { Security } from '../components/Security';
 
 export const Home = () => {
   const { analyze, loading, error, result, reset } = useResumeAnalysis();
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const analyzeRef = useRef<HTMLDivElement>(null);
+
+  const handleAnalyze = async (file: File, jobDescription: string) => {
+    setOriginalFile(file);
+    await analyze(file, jobDescription);
+  };
+
+  const handleReset = () => {
+    setOriginalFile(null);
+    reset();
+  };
 
   const scrollToAnalyze = () => {
     analyzeRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -64,12 +75,12 @@ export const Home = () => {
                 onRetry={reset} 
                 onReset={() => {
                   window.history.pushState('', document.title, window.location.pathname + window.location.search);
-                  reset();
+                  handleReset();
                   setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
                 }}
                 onCheckPricing={() => {
                   window.history.pushState('', document.title, window.location.pathname + window.location.search);
-                  reset();
+                  handleReset();
                   setTimeout(() => {
                     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
                   }, 100);
@@ -97,7 +108,7 @@ export const Home = () => {
             >
               <div className="mb-16 flex items-center justify-between">
                 <button
-                  onClick={reset}
+                  onClick={handleReset}
                   className="group flex items-center gap-4 text-sm font-semibold text-white/90 transition-all hover:text-white cursor-pointer"
                 >
                   <div className="h-12 w-12 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center transition-all group-hover:bg-indigo-500 group-hover:border-indigo-400 group-hover:text-white shadow-xl">
@@ -106,7 +117,7 @@ export const Home = () => {
                   New assessment
                 </button>
               </div>
-              <ResultCard data={result} />
+              <ResultCard data={result} originalFile={originalFile} />
             </motion.div>
           ) : (
             <motion.div
@@ -121,7 +132,7 @@ export const Home = () => {
             >
               <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
                 <div className="w-full mt-4">
-                  <UploadForm onAnalyze={analyze} isLoading={loading} />
+                  <UploadForm onAnalyze={handleAnalyze} isLoading={loading} />
                 </div>
               </div>
               <EmptyState />

@@ -33,17 +33,26 @@ STRICT GUIDELINES:
 4. ATS OPTIMIZATION TIPS: Provide practical suggestions (keyword placement, section improvements, skill ordering, formatting optimization, role-specific targeting, readability).
 5. RECRUITER IMPRESSION: Give a concise recruiter-style evaluation detailing first impression, perceived seniority, strengths, weaknesses, and hireability perception.
 6. IMPACT IMPROVEMENTS: Rewrite achievements incorporating measurable business outcomes, quantified impact, stronger action verbs, clearer ownership, and leadership signals.
-7. BULLET POINTS: Rewrite EVERY weak, non-quantified, or poorly phrased bullet point using the Google-internal formula ("Accomplished [X] as measured by [Y], by doing [Z]").
+7. BULLET POINTS: Identify every weak, non-quantified, or poorly phrased experience bullet point. Rewrite them using the Google-internal formula ("Accomplished [X] as measured by [Y], by doing [Z]"). Provide a side-by-side comparison containing the exact "original" text from the resume and the "improved" version.
 8. KEYWORD DENSITY: Analyze overused terms, missing important keywords, keyword balance, role alignment, and ATS discoverability.
 9. FORMATTING: Detect overly long bullets, inconsistent formatting, weak hierarchy, ATS-unfriendly structures, and readability problems.
 10. SKILLS TO ADD: Suggest missing tools, frameworks, cloud technologies, or role-specific skills based on the JD.
+11. PROFESSIONAL SUMMARY: Provide a side-by-side comparison of the professional summary: the exact "original" text from the resume, and the "improved" version. If no summary exists, use an empty string for "original".
 
 Return ONLY valid JSON in this exact structure:
 {
   "ats_score": number,
   "missing_keywords": ["string"],
-  "improved_bullet_points": ["string"],
-  "better_professional_summary": "string",
+  "improved_bullet_points": [
+    {
+      "original": "string",
+      "improved": "string"
+    }
+  ],
+  "better_professional_summary": {
+    "original": "string",
+    "improved": "string"
+  },
   "resume_weaknesses": ["string"],
   "ats_optimization_tips": ["string"],
   "recruiter_impression": "string",

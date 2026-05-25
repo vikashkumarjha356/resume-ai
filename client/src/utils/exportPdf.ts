@@ -34,12 +34,16 @@ export const exportToPdf = (data: ResumeAnalysis) => {
   y += 5;
 
   addText('Professional Summary', 14, 'bold', '#4b5563');
-  addText(data.better_professional_summary, 11);
+  const summaryText = typeof data.better_professional_summary === 'string'
+    ? data.better_professional_summary
+    : data.better_professional_summary?.improved || '';
+  addText(summaryText, 11);
   y += 5;
 
   addText('Improved Bullet Points', 14, 'bold', '#4b5563');
   data.improved_bullet_points.forEach(b => {
-    addText(`• ${b}`, 11);
+    const bulletText = typeof b === 'string' ? b : b.improved;
+    addText(`• ${bulletText}`, 11);
     y += 2;
   });
   y += 5;

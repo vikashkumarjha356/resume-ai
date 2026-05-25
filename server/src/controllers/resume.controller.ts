@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { parseResume } from "../services/parser.service";
 import { analyzeResumeWithAI } from "../services/gemini.service";
 import { createAuthorizedClient } from "../config/supabase";
+import { patchDocx } from "../utils/docx";
 import fs from "fs/promises";
 
 export const analyzeResume = async (
@@ -161,5 +162,88 @@ export const getAnalysisById = async (req: Request, res: Response): Promise<void
             success: false,
             message: error instanceof Error ? error.message : 'Internal server error fetching analysis'
         });
+    }
+};
+
+export const editResume = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const file = req.file;
+    try {
+        if (!file) {
+            res.status(400).json({
+                success: false,
+                message: "Resume file missing"
+            });
+            return;
+        }
+
+        // We only support .docx files for editing
+        const isDocx = file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+            file.originalname.endsWith(".docx");
+
+        if (!isDocx) {
+            res.status(400).json({
+                success: false,
+                message: "Only .docx files are supported for live editing"
+            });
+            return;
+        }
+
+        const changesRaw = req.body.changes;
+        if (!changesRaw) {
+            res.status(400).json({
+                success: false,
+                message: "No changes specified"
+            });
+            return;
+        }
+
+        let changes;
+        try {
+            changes = typeof changesRaw === "string" ? JSON.parse(changesRaw) : changesRaw;
+        } catch (e) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid changes JSON payload"
+            });
+            return;
+        }
+
+        if (!Array.isArray(changes)) {
+            res.status(400).json({
+                success: false,
+                message: "Changes must be an array of replacements"
+            });
+            return;
+        }
+
+        // Read uploaded file buffer
+        const fileBuffer = await fs.readFile(file.path);
+
+        // Apply edits
+        const modifiedBuffer = await patchDocx(fileBuffer, changes);
+
+        // Set response headers to trigger file download
+        res.setHeader("Content-Disposition", `attachment; filename="optimized_${file.originalname}"`);
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.send(modifiedBuffer);
+    } catch (error) {
+        console.error("Resume edit error:", error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : "Internal server error during resume editing"
+        });
+    } finally {
+        // Clean up temporary file
+        if (file?.path) {
+            try {
+                await fs.unlink(file.path);
+                console.log(`Cleaned up temporary edit file: ${file.path}`);
+            } catch (err) {
+                console.error("Failed to delete temporary edit file:", err);
+            }
+        }
     }
 };

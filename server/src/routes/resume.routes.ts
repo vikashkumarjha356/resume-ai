@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { analyzeResume, getHistory, getAnalysisById } from "../controllers/resume.controller";
+import { analyzeResume, getHistory, getAnalysisById, editResume } from "../controllers/resume.controller";
 import { requireAuth } from "../middleware/auth.middleware";
 import { analysisLimiter } from "../middleware/rateLimit.middleware";
 
@@ -16,6 +16,13 @@ router.post(
     analysisLimiter,
     upload.single("resume"),
     analyzeResume
+);
+
+router.post(
+    "/edit",
+    requireAuth,
+    upload.single("resume"),
+    editResume
 );
 
 router.get(

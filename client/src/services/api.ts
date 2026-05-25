@@ -89,4 +89,40 @@ export const getAnalysisById = async (id: string) => {
   }
 };
 
+/**
+ * Edits a resume file (.docx) by applying selected changes on the server.
+ * Returns the modified file as a Blob.
+ */
+export const editResume = async (
+  file: File,
+  changes: { original: string; improved: string }[]
+): Promise<Blob> => {
+  const formData = new FormData();
+  formData.append('resume', file);
+  formData.append('changes', JSON.stringify(changes));
+
+  try {
+    const response = await api.post('/resume/edit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('API Error:', error);
+    if (error.response?.data instanceof Blob) {
+      const text = await error.response.data.text();
+      try {
+        const parsed = JSON.parse(text);
+        throw new Error(parsed.message || 'Editing resume failed');
+      } catch {
+        throw new Error(text || 'Editing resume failed');
+      }
+    }
+    const message = error.response?.data?.message || error.message || 'Something went wrong';
+    throw new Error(message);
+  }
+};
+
 export default api;
