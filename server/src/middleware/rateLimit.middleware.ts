@@ -14,18 +14,3 @@ export const generalLimiter = rateLimit({
     message: 'Too many requests from this IP, please try again after 15 minutes',
   },
 });
-
-/**
- * Stricter rate limiter for expensive AI analysis
- * 5 requests per 1 hour to prevent API abuse and cost spikes
- */
-export const analysisLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // Limit each IP to 5 requests per hour
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Analysis limit reached. You can analyze up to 5 resumes per hour.',
-  },
-});
