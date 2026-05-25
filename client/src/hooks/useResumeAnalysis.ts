@@ -7,6 +7,7 @@ import type { ResumeAnalysis } from '../types/resume';
  */
 export const useResumeAnalysis = () => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResumeAnalysis | null>(null);
 
@@ -18,9 +19,39 @@ export const useResumeAnalysis = () => {
 
     setLoading(true);
     setError(null);
+    setIsRetrying(false);
+
+    const maxRetries = 3;
+    let attempt = 0;
+
+    const executeAnalysis = async (): Promise<ResumeAnalysis> => {
+      try {
+        return await analyzeResume(file, jobDescription);
+      } catch (err: any) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isHighDemand = errMsg.includes('503') || 
+                             errMsg.includes('429') || 
+                             errMsg.toLowerCase().includes('high demand') || 
+                             errMsg.toLowerCase().includes('occupied') ||
+                             errMsg.toLowerCase().includes('service unavailable') ||
+                             errMsg.toLowerCase().includes('breath');
+
+        if (isHighDemand && attempt < maxRetries) {
+          attempt++;
+          setIsRetrying(true);
+          // Exponential backoff: 1.5s, 3s, 6s + jitter
+          const waitTime = Math.pow(2, attempt - 1) * 1500 + Math.random() * 500;
+          console.log(`Client-side retry attempt ${attempt} of ${maxRetries} in ${Math.round(waitTime)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          return executeAnalysis();
+        }
+
+        throw err;
+      }
+    };
 
     try {
-      const data = await analyzeResume(file, jobDescription);
+      const data = await executeAnalysis();
       setResult(data);
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Analysis failed. Please try again.';
@@ -28,6 +59,7 @@ export const useResumeAnalysis = () => {
       setResult(null);
     } finally {
       setLoading(false);
+      setIsRetrying(false);
     }
   }, [loading]);
 
@@ -36,6 +68,7 @@ export const useResumeAnalysis = () => {
    */
   const reset = useCallback(() => {
     setLoading(false);
+    setIsRetrying(false);
     setError(null);
     setResult(null);
   }, []);
@@ -43,6 +76,7 @@ export const useResumeAnalysis = () => {
   return {
     analyze,
     loading,
+    isRetrying,
     error,
     result,
     reset

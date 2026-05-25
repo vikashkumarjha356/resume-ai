@@ -79,9 +79,17 @@ export const analyzeResume = async (
         });
     } catch (error) {
         console.error('Analysis error:', error);
-        res.status(500).json({
+        const errorMessage = error instanceof Error ? error.message : '';
+        const isHighDemand = errorMessage.includes('503') || 
+                             errorMessage.includes('429') || 
+                             errorMessage.toLowerCase().includes('high demand') || 
+                             errorMessage.toLowerCase().includes('occupied') ||
+                             errorMessage.toLowerCase().includes('service unavailable') ||
+                             errorMessage.toLowerCase().includes('breath');
+                             
+        res.status(isHighDemand ? 503 : 500).json({
             success: false,
-            message: error instanceof Error ? error.message : 'Internal server error during analysis'
+            message: errorMessage || 'Internal server error during analysis'
         });
     } finally {
         // Always delete the temporary file to keep the server disk clean

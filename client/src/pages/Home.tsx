@@ -16,7 +16,7 @@ import { Pricing } from '../components/Pricing';
 import { Security } from '../components/Security';
 
 export const Home = () => {
-  const { analyze, loading, error, result, reset } = useResumeAnalysis();
+  const { analyze, loading, isRetrying, error, result, reset } = useResumeAnalysis();
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const analyzeRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +95,7 @@ export const Home = () => {
               exit={{ opacity: 0 }}
               className="py-20"
             >
-              <Loader />
+              <Loader isRetrying={isRetrying} />
             </motion.div>
           ) : result ? (
             <motion.div

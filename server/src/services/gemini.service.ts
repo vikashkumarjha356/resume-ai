@@ -8,8 +8,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const analyzeResumeWithAI = async (
     resumeText: string,
-    jobDescription: string,
-    retryCount = 0
+    jobDescription: string
 ): Promise<ResumeAnalysis> => {
     const model = genAI.getGenerativeModel({
         model: "gemini-3-flash-preview",
@@ -76,22 +75,14 @@ ${jobDescription}
         // Use the new parsing flow
         return parseAIResponse(responseText);
     } catch (error) {
-        const isRateLimitOrServiceUnavailable = error instanceof Error && 
-            (error.message.includes('503') || error.message.includes('429'));
-            
-        // Retry logic: Attempt up to 3 retries with exponential backoff
-        if (retryCount < 3) {
-            // Calculate delay: 1s, 2s, 4s + random jitter to prevent thundering herd
-            const waitTime = Math.pow(2, retryCount) * 1000 + Math.random() * 500;
-            const errorMessage = error instanceof Error ? error.message : 'Unknown';
-            
-            console.log(`AI generation failed (Attempt ${retryCount + 1} of 3). Retrying in ${Math.round(waitTime)}ms... Error: ${errorMessage}`);
-            
-            await delay(waitTime);
-            return analyzeResumeWithAI(resumeText, jobDescription, retryCount + 1);
+        // Propagate a clear and engaging error message immediately; the client will handle retries
+        if (error instanceof Error) {
+            const msg = error.message;
+            if (msg.includes('503') || msg.includes('429') || msg.toLowerCase().includes('high demand') || msg.toLowerCase().includes('service unavailable')) {
+                throw new Error("The AI model is currently catching its breath due to extremely high demand. The queue is occupied. Please wait a minute and try again!");
+            }
+            throw error;
         }
-        
-        // If all retries fail, propagate a clear error
-        throw new Error(error instanceof Error ? error.message : 'AI Resume Analysis failed after retries.');
+        throw new Error('AI Resume Analysis failed.');
     }
 };
