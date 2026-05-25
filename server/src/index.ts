@@ -8,6 +8,9 @@ import { generalLimiter } from "./middleware/rateLimit.middleware";
 
 const app = express();
 
+// Trust proxy headers (e.g. X-Forwarded-For) for correct rate-limiting on Render
+app.set('trust proxy', 1);
+
 const isDev = process.env.BYPASS_AUTH_LIMITS === 'true';
 
 app.use(cors({
