@@ -4,6 +4,7 @@ import { analyzeResumeWithAI } from "../services/gemini.service";
 import { createAuthorizedClient } from "../config/supabase";
 import { patchDocx } from "../utils/docx";
 import fs from "fs/promises";
+import mammoth from "mammoth";
 
 export const analyzeResume = async (
     req: Request,
@@ -227,16 +228,26 @@ export const editResume = async (
             return;
         }
 
+        const format = req.body.format || "docx";
+
         // Read uploaded file buffer
         const fileBuffer = await fs.readFile(file.path);
 
         // Apply edits
         const modifiedBuffer = await patchDocx(fileBuffer, changes);
 
-        // Set response headers to trigger file download
-        res.setHeader("Content-Disposition", `attachment; filename="optimized_${file.originalname}"`);
-        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        res.send(modifiedBuffer);
+        if (format === "pdf") {
+            const htmlResult = await mammoth.convertToHtml({ buffer: modifiedBuffer });
+            res.status(200).json({
+                success: true,
+                html: htmlResult.value
+            });
+        } else {
+            // Set response headers to trigger file download
+            res.setHeader("Content-Disposition", `attachment; filename="optimized_${file.originalname}"`);
+            res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            res.send(modifiedBuffer);
+        }
     } catch (error) {
         console.error("Resume edit error:", error);
         res.status(500).json({

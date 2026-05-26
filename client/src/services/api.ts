@@ -95,18 +95,20 @@ export const getAnalysisById = async (id: string) => {
  */
 export const editResume = async (
   file: File,
-  changes: { original: string; improved: string }[]
-): Promise<Blob> => {
+  changes: { original: string; improved: string }[],
+  format: 'docx' | 'pdf' = 'docx'
+): Promise<any> => {
   const formData = new FormData();
   formData.append('resume', file);
   formData.append('changes', JSON.stringify(changes));
+  formData.append('format', format);
 
   try {
     const response = await api.post('/resume/edit', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      responseType: 'blob',
+      responseType: format === 'pdf' ? 'json' : 'blob',
     });
     return response.data;
   } catch (error: any) {

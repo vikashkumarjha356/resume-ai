@@ -7,6 +7,7 @@ import type { ResumeAnalysis } from '../types/resume';
 import { Sparkles, Target, User, LayoutGrid, Copy, Check, Download, Upload, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
 import { ExportSection } from './ExportSection';
 import { editResume } from '../services/api';
 
@@ -107,7 +108,7 @@ export const ResultCard = ({ data, originalFile }: { data: ResumeAnalysis; origi
     }
   };
 
-  const handleApplyChanges = async () => {
+  const handleApplyChanges = async (format: 'docx' | 'pdf') => {
     if (!fileToUse) {
       toast.error("Please provide your original .docx resume file first.");
       return;
@@ -143,23 +144,76 @@ export const ResultCard = ({ data, originalFile }: { data: ResumeAnalysis; origi
         return;
       }
 
-      const editedBlob = await editResume(fileToUse, changes);
-      
-      const downloadUrl = window.URL.createObjectURL(editedBlob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
+      const response = await editResume(fileToUse, changes, format);
       
       const originalName = fileToUse.name;
       const dotIdx = originalName.lastIndexOf(".");
       const nameWithoutExt = dotIdx !== -1 ? originalName.substring(0, dotIdx) : originalName;
-      link.download = `${nameWithoutExt}_optimized.docx`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-      
-      toast.success("Optimized resume generated and downloaded successfully!");
+
+      if (format === 'pdf') {
+        const htmlContent = response.html;
+        if (!htmlContent) {
+          throw new Error("Failed to generate PDF content from server.");
+        }
+
+        // Render HTML inside a hidden element and convert to PDF using jsPDF
+        const tempDiv = document.createElement('div');
+        tempDiv.id = 'temp-pdf-render';
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.width = '750px';
+        tempDiv.style.padding = '45px';
+        tempDiv.style.background = '#ffffff';
+        tempDiv.style.color = '#1e293b';
+        tempDiv.style.fontFamily = 'Arial, sans-serif';
+        tempDiv.style.lineHeight = '1.6';
+        
+        // Add basic stylesheet to style mammoth's output beautifully for a professional resume
+        const style = document.createElement('style');
+        style.innerHTML = `
+          #temp-pdf-render p { margin-bottom: 8px; font-size: 13px; color: #334155; }
+          #temp-pdf-render h1 { font-size: 24px; font-weight: bold; color: #0f172a; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+          #temp-pdf-render h2 { font-size: 16px; font-weight: bold; color: #1e293b; margin-top: 18px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; }
+          #temp-pdf-render h3 { font-size: 14px; font-weight: bold; color: #334155; margin-top: 12px; margin-bottom: 6px; }
+          #temp-pdf-render ul { margin-left: 20px; margin-bottom: 12px; list-style-type: disc; }
+          #temp-pdf-render li { font-size: 13px; margin-bottom: 4px; color: #334155; }
+          #temp-pdf-render strong { font-weight: bold; color: #0f172a; }
+        `;
+        
+        tempDiv.innerHTML = htmlContent;
+        tempDiv.appendChild(style);
+        document.body.appendChild(tempDiv);
+
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: 'a4'
+        });
+
+        // Set A4 dimensions in px for conversion
+        await doc.html(tempDiv, {
+          callback: function (doc) {
+            doc.save(`${nameWithoutExt}_optimized.pdf`);
+            document.body.removeChild(tempDiv);
+            toast.success("Optimized PDF resume downloaded successfully!");
+          },
+          x: 10,
+          y: 10,
+          width: 430, // Fit cleanly in A4 margins
+          windowWidth: 750
+        });
+      } else {
+        const downloadUrl = window.URL.createObjectURL(response);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `${nameWithoutExt}_optimized.docx`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        toast.success("Optimized DOCX resume downloaded successfully!");
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to patch resume document");
@@ -501,28 +555,38 @@ export const ResultCard = ({ data, originalFile }: { data: ResumeAnalysis; origi
             {/* Document upload / download footer */}
             <div className="mt-12 pt-10 border-t border-white/10">
               {fileToUse ? (
-                <div className="flex flex-col items-center space-y-4">
+                <div className="flex flex-col items-center space-y-4 w-full">
                   {isFileDocx ? (
                     <>
-                      <button
-                        onClick={handleApplyChanges}
-                        disabled={applyingChanges}
-                        className="group relative h-16 px-12 rounded-2xl bg-white text-slate-950 font-bold text-sm transition-all hover:scale-105 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_50px_rgba(255,255,255,0.25)] active:scale-95 flex items-center justify-center gap-3 overflow-hidden cursor-pointer"
-                      >
-                        {applyingChanges ? (
-                          <>
+                      <div className="flex flex-col sm:flex-row gap-6 w-full max-w-lg justify-center">
+                        <button
+                          onClick={() => handleApplyChanges('docx')}
+                          disabled={applyingChanges}
+                          className="group relative flex-1 h-16 px-8 rounded-2xl bg-white text-slate-950 font-bold text-sm transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 overflow-hidden cursor-pointer shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                        >
+                          {applyingChanges ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
-                            Applying AI Patches...
-                          </>
-                        ) : (
-                          <>
+                          ) : (
                             <Download className="h-5 w-5" />
-                            Apply Changes & Download DOCX
-                          </>
-                        )}
-                      </button>
-                      <p className="text-xs text-white/40">
-                        Patches are applied directly in-memory. Your original document format, header, layout, and fonts are completely preserved.
+                          )}
+                          <span>Download DOCX</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleApplyChanges('pdf')}
+                          disabled={applyingChanges}
+                          className="group relative flex-1 h-16 px-8 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] text-white font-bold text-sm transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 overflow-hidden cursor-pointer shadow-[0_0_30px_rgba(99,102,241,0.2)] animate-gradient"
+                        >
+                          {applyingChanges ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-5 w-5" />
+                          )}
+                          <span>Download PDF</span>
+                        </button>
+                      </div>
+                      <p className="text-xs text-white/40 text-center max-w-md leading-relaxed">
+                        Patches are applied directly in-memory. DOCX completely preserves original layout. PDF generates a beautifully formatted, clean version of your optimized resume.
                       </p>
                     </>
                   ) : (
