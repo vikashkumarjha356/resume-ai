@@ -14,6 +14,7 @@ export const analyzeResume = async (
     try {
         console.log("REQUEST HIT");
         const { jobDescription } = req.body;
+        const isStream = req.query.stream === 'true';
 
         if (!file) {
             res.status(400).json({
@@ -55,29 +56,61 @@ export const analyzeResume = async (
             file.mimetype
         );
 
-        // Call Gemini service (now handles parsing, validation, and retries)
-        const analysis = await analyzeResumeWithAI(resumeText, jobDescription);
-
-        // Save analysis to Supabase database - bypassed in development (avoids trigger limits)
-        if (!isDev && userSupabase && user) {
-            const { error: dbError } = await userSupabase
-                .from('resume_analyses')
-                .insert({
-                    user_id: user.id,
-                    user_email: user.email,
-                    job_description: jobDescription,
-                    analysis_data: analysis
-                });
+        if (isStream) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
             
-            if (dbError) {
-                console.error("Failed to save analysis to database:", dbError);
-            }
-        }
+            const onChunk = (chunk: string) => {
+                // SSE format
+                res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+            };
 
-        res.status(200).json({
-            success: true,
-            data: analysis
-        });
+            const analysis = await analyzeResumeWithAI(resumeText, jobDescription, onChunk);
+
+            // Save analysis to Supabase database - bypassed in development
+            if (!isDev && userSupabase && user) {
+                const { error: dbError } = await userSupabase
+                    .from('resume_analyses')
+                    .insert({
+                        user_id: user.id,
+                        user_email: user.email,
+                        job_description: jobDescription,
+                        analysis_data: analysis
+                    });
+                
+                if (dbError) {
+                    console.error("Failed to save analysis to database:", dbError);
+                }
+            }
+
+            res.write(`data: ${JSON.stringify({ done: true, analysis })}\n\n`);
+            res.end();
+        } else {
+            // Call Gemini service (now handles parsing, validation, and retries)
+            const analysis = await analyzeResumeWithAI(resumeText, jobDescription);
+
+            // Save analysis to Supabase database - bypassed in development (avoids trigger limits)
+            if (!isDev && userSupabase && user) {
+                const { error: dbError } = await userSupabase
+                    .from('resume_analyses')
+                    .insert({
+                        user_id: user.id,
+                        user_email: user.email,
+                        job_description: jobDescription,
+                        analysis_data: analysis
+                    });
+                
+                if (dbError) {
+                    console.error("Failed to save analysis to database:", dbError);
+                }
+            }
+
+            res.status(200).json({
+                success: true,
+                data: analysis
+            });
+        }
     } catch (error) {
         console.error('Analysis error:', error);
         const errorMessage = error instanceof Error ? error.message : '';
@@ -88,10 +121,22 @@ export const analyzeResume = async (
                              errorMessage.toLowerCase().includes('service unavailable') ||
                              errorMessage.toLowerCase().includes('breath');
                              
-        res.status(isHighDemand ? 503 : 500).json({
+        const statusCode = isHighDemand ? 503 : 500;
+        const payload = {
             success: false,
             message: errorMessage || 'Internal server error during analysis'
-        });
+        };
+
+        if (req.query.stream === 'true' && !res.headersSent) {
+            // If headers haven't been sent, we can still send a normal JSON error response
+            res.status(statusCode).json(payload);
+        } else if (req.query.stream === 'true') {
+            // If streaming has started, send an error event
+            res.write(`event: error\ndata: ${JSON.stringify(payload)}\n\n`);
+            res.end();
+        } else {
+            res.status(statusCode).json(payload);
+        }
     } finally {
         // Always delete the temporary file to keep the server disk clean
         if (file?.path) {

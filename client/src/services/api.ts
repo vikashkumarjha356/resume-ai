@@ -59,6 +59,89 @@ export const analyzeResume = async (
   }
 };
 
+/**
+ * Analyzes a resume using real-time streaming (SSE)
+ */
+export const analyzeResumeStream = async (
+  file: File,
+  jobDescription: string,
+  onChunk: (chunk: string) => void,
+  onComplete: (analysis: ResumeAnalysis) => void,
+  onError: (error: string) => void
+) => {
+  try {
+    const formData = new FormData();
+    formData.append('resume', file);
+    formData.append('jobDescription', jobDescription);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {};
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
+    const response = await fetch(`${ENV.API_BASE_URL}/resume/analyze?stream=true`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Streaming failed to start');
+    }
+
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      
+      // Keep the last incomplete line in the buffer
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          if (dataStr === '[DONE]') continue; // Standard SSE completion, if used
+          
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.chunk) {
+              onChunk(parsed.chunk);
+            } else if (parsed.done && parsed.analysis) {
+              onComplete(parsed.analysis);
+            }
+          } catch (e) {
+            console.warn('Failed to parse SSE line:', line);
+          }
+        } else if (line.startsWith('event: error')) {
+          // The next line should be the error data
+        } else if (line.startsWith('data: ') && buffer.includes('event: error')) {
+            try {
+              const parsed = JSON.parse(line.slice(6));
+              onError(parsed.message || 'An error occurred during streaming');
+            } catch (e) {
+               onError('An error occurred during streaming');
+            }
+        }
+      }
+    }
+  } catch (error: any) {
+    console.error('Streaming Error:', error);
+    onError(error.message || 'Something went wrong during streaming');
+  }
+};
+
 export const getHistory = async () => {
   try {
     const response = await api.get('/resume/history');

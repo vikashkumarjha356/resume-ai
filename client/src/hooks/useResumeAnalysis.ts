@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { analyzeResume } from '../services/api';
+import { analyzeResumeStream } from '../services/api';
 import type { ResumeAnalysis } from '../types/resume';
 
 /**
@@ -10,6 +10,7 @@ export const useResumeAnalysis = () => {
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResumeAnalysis | null>(null);
+  const [streamText, setStreamText] = useState<string>('');
 
   /**
    * Triggers the resume analysis API call
@@ -20,13 +21,33 @@ export const useResumeAnalysis = () => {
     setLoading(true);
     setError(null);
     setIsRetrying(false);
+    setStreamText('');
 
     const maxRetries = 3;
     let attempt = 0;
 
-    const executeAnalysis = async (): Promise<ResumeAnalysis> => {
+    const executeAnalysis = (): Promise<ResumeAnalysis> => {
+      return new Promise((resolve, reject) => {
+        analyzeResumeStream(
+          file,
+          jobDescription,
+          (chunk) => {
+            setStreamText(prev => prev + chunk);
+          },
+          (analysis) => {
+            resolve(analysis);
+          },
+          (errorMsg) => {
+            reject(new Error(errorMsg));
+          }
+        ).catch(reject);
+      });
+    };
+
+    const tryAnalysis = async (): Promise<void> => {
       try {
-        return await analyzeResume(file, jobDescription);
+        const data = await executeAnalysis();
+        setResult(data);
       } catch (err: any) {
         const errMsg = err instanceof Error ? err.message : String(err);
         const isHighDemand = errMsg.includes('503') || 
@@ -43,24 +64,19 @@ export const useResumeAnalysis = () => {
           const waitTime = Math.pow(2, attempt - 1) * 1500 + Math.random() * 500;
           console.log(`Client-side retry attempt ${attempt} of ${maxRetries} in ${Math.round(waitTime)}ms...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
-          return executeAnalysis();
+          setStreamText(''); // reset stream text on retry
+          return tryAnalysis();
         }
 
-        throw err;
+        const errorMessage = err instanceof Error ? err.message : 'Analysis failed. Please try again.';
+        setError(errorMessage);
+        setResult(null);
       }
     };
 
-    try {
-      const data = await executeAnalysis();
-      setResult(data);
-    } catch (err: any) {
-      const errorMessage = err instanceof Error ? err.message : 'Analysis failed. Please try again.';
-      setError(errorMessage);
-      setResult(null);
-    } finally {
-      setLoading(false);
-      setIsRetrying(false);
-    }
+    await tryAnalysis();
+    setLoading(false);
+    setIsRetrying(false);
   }, [loading]);
 
   /**
@@ -71,6 +87,7 @@ export const useResumeAnalysis = () => {
     setIsRetrying(false);
     setError(null);
     setResult(null);
+    setStreamText('');
   }, []);
 
   return {
@@ -79,6 +96,7 @@ export const useResumeAnalysis = () => {
     isRetrying,
     error,
     result,
-    reset
+    reset,
+    streamText
   };
 };

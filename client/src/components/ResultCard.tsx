@@ -156,11 +156,14 @@ export const ResultCard = ({ data, originalFile }: { data: ResumeAnalysis; origi
           throw new Error("Failed to generate PDF content from server.");
         }
 
-        // Render HTML inside a hidden element and convert to PDF using jsPDF
         const tempDiv = document.createElement('div');
         tempDiv.id = 'temp-pdf-render';
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
+        // Use fixed positioning and negative z-index instead of left: -9999px
+        // html2canvas (used by jsPDF) will render blank if the element is off-screen
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '0';
+        tempDiv.style.top = '0';
+        tempDiv.style.zIndex = '-9999';
         tempDiv.style.width = '750px';
         tempDiv.style.padding = '45px';
         tempDiv.style.background = '#ffffff';
@@ -582,12 +585,18 @@ export const ResultCard = ({ data, originalFile }: { data: ResumeAnalysis; origi
                           ) : (
                             <Sparkles className="h-5 w-5" />
                           )}
-                          <span>Download PDF</span>
+                          <div className="flex flex-col items-center">
+                            <span>Download PDF</span>
+                            <span className="text-[10px] opacity-70 font-normal">Standardized format</span>
+                          </div>
                         </button>
                       </div>
-                      <p className="text-xs text-white/40 text-center max-w-md leading-relaxed">
-                        Patches are applied directly in-memory. DOCX completely preserves original layout. PDF generates a beautifully formatted, clean version of your optimized resume.
-                      </p>
+                      <div className="flex items-start gap-2 bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl max-w-lg mt-2">
+                        <AlertCircle className="h-4 w-4 text-indigo-400 mt-0.5 shrink-0" />
+                        <p className="text-xs text-white/60 leading-relaxed text-left">
+                          <strong>Note on formatting:</strong> PDF export generates a beautifully formatted, clean, standardized version of your resume. To preserve your exact custom colors, margins, and original styling, please <strong>Download DOCX</strong>.
+                        </p>
+                      </div>
                     </>
                   ) : (
                     <div className="w-full max-w-lg p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center space-y-4 mx-auto">

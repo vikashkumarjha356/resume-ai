@@ -8,7 +8,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const analyzeResumeWithAI = async (
     resumeText: string,
-    jobDescription: string
+    jobDescription: string,
+    onChunk?: (chunk: string) => void
 ): Promise<ResumeAnalysis> => {
     const model = genAI.getGenerativeModel({
         model: "gemini-3-flash-preview",
@@ -69,11 +70,20 @@ ${jobDescription}
 `;
 
     try {
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        
-        // Use the new parsing flow
-        return parseAIResponse(responseText);
+        if (onChunk) {
+            const result = await model.generateContentStream(prompt);
+            let fullText = "";
+            for await (const chunk of result.stream) {
+                const chunkText = chunk.text();
+                fullText += chunkText;
+                onChunk(chunkText);
+            }
+            return parseAIResponse(fullText);
+        } else {
+            const result = await model.generateContent(prompt);
+            const responseText = result.response.text();
+            return parseAIResponse(responseText);
+        }
     } catch (error) {
         // Propagate a clear and engaging error message immediately; the client will handle retries
         if (error instanceof Error) {
